@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Practical Machine Learning Project : John Doe, October 26, 2014">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Practical Machine Learning Project</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/tingting4805/practicalMachineLearning">View on GitHub</a>
+
+          <h1 id="project_title">Practical Machine Learning Project</h1>
+          <h2 id="project_tagline">John Doe, October 26, 2014</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/tingting4805/practicalMachineLearning/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/tingting4805/practicalMachineLearning/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>This project aims to create an algorithm to analyze whether data from devices with accelerometers can correctly predict the exact movement the person wearing is doing. </p>
+
+<h2>
+<a name="background-are-they-performing-barbell-lifts-correctly" class="anchor" href="#background-are-they-performing-barbell-lifts-correctly"><span class="octicon octicon-link"></span></a>Background: Are they performing barbell lifts correctly?</h2>
+
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.</p>
+
+<h2>
+<a name="data" class="anchor" href="#data"><span class="octicon octicon-link"></span></a>Data</h2>
+
+<h3>
+<a name="getting-data" class="anchor" href="#getting-data"><span class="octicon octicon-link"></span></a>Getting Data</h3>
+
+<p>The data for this project come from <a href="http://groupware.les.inf.puc-rio.br/har">here</a>. The dataset used in training and cross-validation is stored in <code>totalRaw</code>, and the other small dataset used to predict values submitted to Coursera is stored in <code>testRaw</code>. When loading data, any empty values or those with "NA" or "#DIV/0!" would be treated as <code>NA</code>. We have 19622 observations of 160 features in <code>totalRaw</code>.</p>
+
+<div class="highlight highlight-r"><pre><span class="kn">library</span><span class="p">(</span>caret<span class="p">)</span>
+</pre></div>
+
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2
+</code></pre>
+
+<div class="highlight highlight-r"><pre><span class="kn">library</span><span class="p">(</span>ggplot2<span class="p">)</span>
+<span class="kn">library</span><span class="p">(</span>lattice<span class="p">)</span>
+<span class="kn">library</span><span class="p">(</span>kernlab<span class="p">)</span>
+<span class="kn">library</span><span class="p">(</span>randomForest<span class="p">)</span>
+</pre></div>
+
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+</code></pre>
+
+<div class="highlight highlight-r"><pre><span class="kr">if</span> <span class="p">(</span><span class="o">!</span><span class="kp">file.exists</span><span class="p">(</span><span class="s">"pml-training.csv"</span><span class="p">))</span> <span class="p">{</span>
+  download.file<span class="p">(</span><span class="s">"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"</span><span class="p">,</span> destfile <span class="o">=</span> <span class="s">"pml-training.csv"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kr">if</span> <span class="p">(</span><span class="o">!</span><span class="kp">file.exists</span><span class="p">(</span><span class="s">"pml-testing.csv"</span><span class="p">))</span> <span class="p">{</span>
+  download.file<span class="p">(</span><span class="s">"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"</span><span class="p">,</span> destfile <span class="o">=</span> <span class="s">"pml-testing.csv"</span><span class="p">)</span>
+<span class="p">}</span>
+
+totalRaw <span class="o">&lt;-</span> read.csv<span class="p">(</span><span class="s">"pml-training.csv"</span><span class="p">,</span> sep <span class="o">=</span> <span class="s">","</span><span class="p">,</span> na.strings <span class="o">=</span> <span class="kt">c</span><span class="p">(</span><span class="s">""</span><span class="p">,</span> <span class="s">"NA"</span><span class="p">,</span> <span class="s">"#DIV/0!"</span><span class="p">))</span>
+testRaw <span class="o">&lt;-</span> read.csv<span class="p">(</span><span class="s">"pml-testing.csv"</span><span class="p">,</span> sep <span class="o">=</span> <span class="s">","</span><span class="p">,</span> na.strings <span class="o">=</span> <span class="kt">c</span><span class="p">(</span><span class="s">""</span><span class="p">,</span> <span class="s">"NA"</span><span class="p">,</span> <span class="s">"#DIV/0!"</span><span class="p">))</span>
+</pre></div>
+
+<h2>
+<a name="data-cleaning" class="anchor" href="#data-cleaning"><span class="octicon octicon-link"></span></a>Data Cleaning</h2>
+
+<p>First exclude all those columns with <code>NA</code> values, as those insignificant features would interfere with algorithm's accuracy and efficiency. Doing so would eliminate 100 variables. 
+Then we remove columns corresponding to descriptive contents, such as <code>user_name</code>, and anything related to <code>timestamp</code>. These are stored in the first seven columns in the data set.</p>
+
+<div class="highlight highlight-r"><pre>totalRaw <span class="o">&lt;-</span> totalRaw<span class="p">[,</span><span class="kp">colSums</span><span class="p">(</span><span class="kp">is.na</span><span class="p">(</span>totalRaw<span class="p">))</span><span class="o">==</span><span class="m">0</span><span class="p">]</span>
+totalRaw <span class="o">&lt;-</span> totalRaw<span class="p">[,</span><span class="m">-1</span><span class="o">:</span><span class="m">-7</span><span class="p">]</span>
+</pre></div>
+
+<h2>
+<a name="data-partition" class="anchor" href="#data-partition"><span class="octicon octicon-link"></span></a>Data Partition</h2>
+
+<p>Next, we partition data to have 70% into training and 30% into testing in order to have good cross-validation.</p>
+
+<div class="highlight highlight-r"><pre>inTrain <span class="o">&lt;-</span> createDataPartition<span class="p">(</span>y<span class="o">=</span>totalRaw<span class="o">$</span>classe<span class="p">,</span> p <span class="o">=</span> <span class="m">0.7</span><span class="p">,</span> <span class="kt">list</span> <span class="o">=</span> <span class="kc">FALSE</span><span class="p">)</span>
+training <span class="o">&lt;-</span> totalRaw<span class="p">[</span>inTrain<span class="p">,]</span>
+testing <span class="o">&lt;-</span> totalRaw<span class="p">[</span><span class="o">-</span>inTrain<span class="p">,]</span>
+</pre></div>
+
+<h1>
+<a name="model-building" class="anchor" href="#model-building"><span class="octicon octicon-link"></span></a>Model Building</h1>
+
+<p>We utilize <code>randomForest</code> model to build the classification tree, since it has highest accuracy with minimum overfitting issues. During training, cross-validation (<code>cv</code>) has been chosen to control the process.</p>
+
+<div class="highlight highlight-r"><pre><span class="c1"># Register for parallel computing</span>
+<span class="kn">library</span><span class="p">(</span>doParallel<span class="p">);</span>
+</pre></div>
+
+<pre><code>## Loading required package: foreach
+## Loading required package: iterators
+## Loading required package: parallel
+</code></pre>
+
+<div class="highlight highlight-r"><pre>rCluster <span class="o">&lt;-</span> makePSOCKcluster<span class="p">(</span><span class="m">4</span><span class="p">);</span>
+registerDoParallel<span class="p">(</span>rCluster<span class="p">);</span>
+
+<span class="c1"># Command to train machine</span>
+trControl <span class="o">=</span> trainControl<span class="p">(</span>method <span class="o">=</span> <span class="s">"cv"</span><span class="p">,</span> number <span class="o">=</span> <span class="m">4</span><span class="p">,</span> allowParallel <span class="o">=</span><span class="kc">TRUE</span><span class="p">);</span>
+rffit <span class="o">&lt;-</span> train<span class="p">(</span>training<span class="o">$</span>classe <span class="o">~</span><span class="m">.</span><span class="p">,</span>data <span class="o">=</span> training<span class="p">,</span>method<span class="o">=</span><span class="s">"rf"</span><span class="p">,</span>trControl<span class="o">=</span>trControl<span class="p">);</span>
+</pre></div>
+
+<h1>
+<a name="cross-validation" class="anchor" href="#cross-validation"><span class="octicon octicon-link"></span></a>Cross-validation</h1>
+
+<p>Now we want to learn the error of in-sample and out-of-sample. We achieve such goal by drawing confusion matrix.</p>
+
+<p>First is in-sample, i.e. by seeing how well the algorithm is predicting training set itself.</p>
+
+<div class="highlight highlight-r"><pre>prediction <span class="o">&lt;-</span> predict<span class="p">(</span>rffit<span class="p">,</span> training<span class="p">)</span>
+confusionMatrix<span class="p">(</span>prediction<span class="p">,</span> training<span class="o">$</span>classe<span class="p">)</span>
+</pre></div>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 3906    0    0    0    0
+##          B    0 2658    0    0    0
+##          C    0    0 2396    0    0
+##          D    0    0    0 2252    0
+##          E    0    0    0    0 2525
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9997, 1)
+##     No Information Rate : 0.2843     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar's Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000
+</code></pre>
+
+<p>Then is out-of-sample error, i.e. by seeing how well it can predict the small test part:</p>
+
+<div class="highlight highlight-r"><pre>prediction <span class="o">&lt;-</span> predict<span class="p">(</span>rffit<span class="p">,</span> testing<span class="p">)</span>
+confusionMatrix<span class="p">(</span>prediction<span class="p">,</span> testing<span class="o">$</span>classe<span class="p">)</span>
+</pre></div>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1673    5    0    0    0
+##          B    1 1134   13    0    0
+##          C    0    0 1011   21    3
+##          D    0    0    2  942    4
+##          E    0    0    0    1 1075
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9915          
+##                  95% CI : (0.9888, 0.9937)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9893          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9994   0.9956   0.9854   0.9772   0.9935
+## Specificity            0.9988   0.9971   0.9951   0.9988   0.9998
+## Pos Pred Value         0.9970   0.9878   0.9768   0.9937   0.9991
+## Neg Pred Value         0.9998   0.9989   0.9969   0.9955   0.9985
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2843   0.1927   0.1718   0.1601   0.1827
+## Detection Prevalence   0.2851   0.1951   0.1759   0.1611   0.1828
+## Balanced Accuracy      0.9991   0.9963   0.9902   0.9880   0.9967
+</code></pre>
+
+<p>We can see from both confusion matrices, we have pretty high accuracy for both cases.</p>
+
+<h1>
+<a name="how-does-it-go-with-the-testing-20-samples" class="anchor" href="#how-does-it-go-with-the-testing-20-samples"><span class="octicon octicon-link"></span></a>How does it go with the testing 20 samples?</h1>
+
+<div class="highlight highlight-r"><pre>answer <span class="o">&lt;-</span> predict<span class="p">(</span>rffit<span class="p">,</span> testRaw<span class="p">)</span>
+
+answer
+</pre></div>
+
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</code></pre>
+
+<div class="highlight highlight-r"><pre>answer <span class="o">&lt;-</span> <span class="kp">as.vector</span><span class="p">(</span>answer<span class="p">)</span>
+
+pml_write_files <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>x<span class="p">)</span> <span class="p">{</span>
+    n <span class="o">=</span> <span class="kp">length</span><span class="p">(</span>x<span class="p">)</span>
+    <span class="kr">for</span> <span class="p">(</span>i <span class="kr">in</span> <span class="m">1</span><span class="o">:</span>n<span class="p">)</span> <span class="p">{</span>
+        filename <span class="o">=</span> <span class="kp">paste0</span><span class="p">(</span><span class="s">"problem_id_"</span><span class="p">,</span> i<span class="p">,</span> <span class="s">".txt"</span><span class="p">)</span>
+        write.table<span class="p">(</span>x<span class="p">[</span>i<span class="p">],</span> file <span class="o">=</span> filename<span class="p">,</span> quote <span class="o">=</span> <span class="kc">FALSE</span><span class="p">,</span> row.names <span class="o">=</span> <span class="kc">FALSE</span><span class="p">,</span> 
+            col.names <span class="o">=</span> <span class="kc">FALSE</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+pml_write_files<span class="p">(</span>answer<span class="p">)</span>
+</pre></div>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Practical Machine Learning Project maintained by <a href="https://github.com/tingting4805">tingting4805</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
